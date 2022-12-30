@@ -15,5 +15,5 @@ half a byte). These nibble streams are
 taken apart, inspected, and used by
 various modules.
 
-HANNOVER is at its core a monomorphic
-wavetable synthesizer.
+HANNOVER is a monomorphic wavetable
+synthesizer.

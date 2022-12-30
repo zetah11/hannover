@@ -1,7 +1,7 @@
 use crate::wavetable::Wavetable;
 
 /// The number of samples per second.
-pub const SAMPLE_RATE: usize = 10;
+pub const SAMPLE_RATE: usize = 48_000;
 
 /// Produce an audio sample at the given frequency (in Hz) and sample number.
 /// Linearly interpolates between the two samples in the wavetable it lands
