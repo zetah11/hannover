@@ -4,6 +4,7 @@
 #[derive(Clone, Debug)]
 pub struct NibbleStream<const N: usize> {
     data: Vec<u8>,
+    total: u8,
     index: usize,
     wrap: usize,
     _phantom: std::marker::PhantomData<[(); N]>,
@@ -13,6 +14,7 @@ impl<const N: usize> NibbleStream<N> {
     pub fn new(data: &[u8]) -> Self {
         Self {
             data: data.to_vec(),
+            total: 0,
             index: 0,
             wrap: 2 * data.len(),
             _phantom: std::marker::PhantomData,
@@ -23,6 +25,7 @@ impl<const N: usize> NibbleStream<N> {
         let wrap = 2 * data.len();
         Self {
             data: data.to_vec(),
+            total: 0,
             index: self.index % wrap,
             wrap,
             _phantom: std::marker::PhantomData,
@@ -40,8 +43,9 @@ impl<const N: usize> NibbleStream<N> {
             let index = self.index + i;
 
             // note: self.wrap is always even, so this should be correct
-            let byte = self.data[(index % self.wrap) / 2];
+            let byte = self.data[(index % self.wrap) / 2] ^ self.total;
             *data = if index % 2 == 0 {
+                self.total = self.total.rotate_left(5).wrapping_add(byte);
                 byte >> 4
             } else {
                 byte & 0x0f

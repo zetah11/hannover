@@ -227,7 +227,7 @@ impl NibbleStream<1> {
             0x1 => {
                 let nibble = self.next_nibble();
                 let prime1 = PRIMES[nibble as usize];
-                let prime2 = PRIMES[0x10 - nibble as usize];
+                let prime2 = PRIMES[0xf - nibble as usize];
                 Instruction::MultiplyCursor(prime1, prime2)
             }
 

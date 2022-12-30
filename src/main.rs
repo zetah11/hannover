@@ -26,9 +26,5 @@ fn main() {
 
     let aio = aio::play_audio().unwrap();
 
-    player::play(
-        aio.audio_in,
-        aio.sample_rate,
-        "at last you see this is how it happens".as_bytes(),
-    );
+    player::play(aio.audio_in, aio.sample_rate, "h".as_bytes());
 }

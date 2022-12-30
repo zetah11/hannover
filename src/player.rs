@@ -17,8 +17,8 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, input: &[u8]) 
 
     let sampler = Sampler::new(sample_rate);
 
-    let mut delay1 = Delay::new(10_000, 0.7, 1.0, 0.3);
-    let mut delay2 = Delay::new(35_000, 0.8, 0.9, 0.7);
+    let mut delay1 = Delay::new(5_000, 0.9, 1.0, 0.1);
+    let mut delay2 = Delay::new(20_000, 0.8, 0.9, 0.7);
     let mut env = AttackDecay::new(0.02, 0.04);
     let mut wt = Wavetable::<22>::new_sine();
     let mut y = Float::new();
