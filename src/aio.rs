@@ -3,6 +3,7 @@
 use anyhow::anyhow;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{BufferSize, Data, OutputCallbackInfo, Sample, SampleFormat, Stream, StreamConfig};
+use log::warn;
 use rtrb::{Consumer, Producer, RingBuffer};
 
 pub const BUFFER_SIZE: usize = 256;
@@ -31,7 +32,7 @@ pub fn play_audio() -> anyhow::Result<(Producer<f32>, Stream)> {
         ..config
     };
 
-    let (audio_in, audio_out) = RingBuffer::new(4 * BUFFER_SIZE);
+    let (audio_in, audio_out) = RingBuffer::new(16 * BUFFER_SIZE);
 
     let stream = device.build_output_stream(&config, make_data_callback(audio_out), |err| {
         eprintln!("error playing audio: {err}")
@@ -47,7 +48,10 @@ fn make_data_callback(
 ) -> impl FnMut(&mut [f32], &OutputCallbackInfo) + Send + 'static {
     move |buffer, info| {
         for buf in buffer.iter_mut() {
-            *buf = audio_out.pop().unwrap_or(0.0);
+            *buf = audio_out.pop().unwrap_or_else(|_| {
+                warn!("ring buffer empty");
+                0.0
+            });
         }
     }
 }
