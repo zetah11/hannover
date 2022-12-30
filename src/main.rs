@@ -3,12 +3,14 @@
 mod aio;
 mod bytes;
 mod data;
+mod delay;
 mod envelope;
 mod float;
 mod math;
 mod notes;
 mod player;
 mod sampler;
+mod structures;
 mod wavetable;
 
 use std::thread;
@@ -24,5 +26,9 @@ fn main() {
 
     let aio = aio::play_audio().unwrap();
 
-    player::play(aio.audio_in, aio.sample_rate, b"hannover");
+    player::play(
+        aio.audio_in,
+        aio.sample_rate,
+        "at last you see this is how it happens".as_bytes(),
+    );
 }

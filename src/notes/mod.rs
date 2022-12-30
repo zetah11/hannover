@@ -34,7 +34,7 @@ impl NibbleStream<3> {
         }
 
         let pitch = (c & 7) as i32 + if c & 8 != 0 { -8 } else { 0 };
-        let pitch = (Pitch::D4 - Octave).in_pentatonic_minor(pitch);
+        let pitch = Pitch::A2.in_pentatonic_minor(pitch);
 
         Note {
             pitch: noisy.then_some(pitch),

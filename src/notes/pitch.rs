@@ -11,6 +11,8 @@ const TWELFTH_ROOT_TWO: f64 = 1.059_463_094_359_295_3;
 pub struct Pitch(i32);
 
 impl Pitch {
+    pub const A2: Pitch = Pitch(-24);
+
     pub const C4: Pitch = Pitch(-9);
     pub const CS4: Pitch = Pitch(-8);
     pub const D4: Pitch = Pitch(-7);
