@@ -24,5 +24,9 @@ fn main() {
 
     let aio = aio::play_audio().unwrap();
 
-    player::play(aio.audio_in, aio.sample_rate, b"DFSKJJ");
+    player::play(
+        aio.audio_in,
+        aio.sample_rate,
+        b"hannover is an audio (not quite music) synthesizer",
+    );
 }
