@@ -21,6 +21,10 @@ impl AttackDecay {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.value = 0.0;
+    }
+
     pub fn step(&mut self, by: f64) {
         self.value += by;
     }

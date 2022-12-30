@@ -8,7 +8,13 @@ use rtrb::{Consumer, Producer, RingBuffer};
 
 pub const BUFFER_SIZE: usize = 256;
 
-pub fn play_audio() -> anyhow::Result<(Producer<f32>, Stream)> {
+pub struct AudioIo {
+    pub sample_rate: usize,
+    pub audio_in: Producer<f32>,
+    pub stream: Stream,
+}
+
+pub fn play_audio() -> anyhow::Result<AudioIo> {
     let host = cpal::default_host();
     let device = host
         .default_output_device()
@@ -20,10 +26,6 @@ pub fn play_audio() -> anyhow::Result<(Producer<f32>, Stream)> {
         .ok_or_else(|| anyhow!("no supported configurations"))?
         .with_max_sample_rate();
 
-    assert_eq!(
-        crate::sampler::SAMPLE_RATE,
-        supported_config.sample_rate().0 as usize
-    );
     assert_eq!(SampleFormat::F32, supported_config.sample_format());
 
     let config = supported_config.config();
@@ -40,7 +42,11 @@ pub fn play_audio() -> anyhow::Result<(Producer<f32>, Stream)> {
 
     stream.play()?;
 
-    Ok((audio_in, stream))
+    Ok(AudioIo {
+        sample_rate: config.sample_rate.0 as usize,
+        audio_in,
+        stream,
+    })
 }
 
 fn make_data_callback(

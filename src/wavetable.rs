@@ -225,8 +225,10 @@ impl NibbleStream<1> {
             0x0 | 0xb..=0xf => Instruction::Noop,
 
             0x1 => {
-                let prime = self.next_prime();
-                Instruction::MultiplyCursor(prime, 0x10 - prime)
+                let nibble = self.next_nibble();
+                let prime1 = PRIMES[nibble as usize];
+                let prime2 = PRIMES[0x10 - nibble as usize];
+                Instruction::MultiplyCursor(prime1, prime2)
             }
 
             0x2 => Instruction::VoronoiCursor,

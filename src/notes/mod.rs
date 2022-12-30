@@ -16,7 +16,6 @@ impl NibbleStream<3> {
     pub fn next_note(&mut self) -> Note {
         let [a, b, c] = self.next_nibbles();
         let noisy = a & 4 != 0 || a & 2 != 0;
-        let silent = !noisy;
 
         let mut duration = Duration::SIXTEENTH;
 
@@ -36,7 +35,7 @@ impl NibbleStream<3> {
         };
 
         Note {
-            pitch: silent.then_some(pitch),
+            pitch: noisy.then_some(pitch),
             duration,
         }
     }

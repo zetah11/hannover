@@ -8,6 +8,10 @@ pub struct Duration(usize);
 
 impl Duration {
     pub const SIXTEENTH: Duration = Duration(2);
+
+    /// The smallest non-zero duration represented by this.
+    pub const DELTA: Duration = Duration(1);
+
     pub const ZERO: Duration = Duration(0);
 
     /// Get the number of seconds this duration lasts, for the given BPM. The
