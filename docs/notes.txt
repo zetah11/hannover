@@ -1,0 +1,44 @@
+NOTES, PITCHES, AND SO ON
+---------------------------------------
+
+A note is composed of an (optional)
+pitch and a duration.
+
+Notes are specified in terms of three
+nibbles, of the form
+
+  abcd efgh ijkl
+
+general:
+  note is silent if both b and c are
+  unset.
+
+time info:
+  each note begins as a sixteenth note.
+  if e is set, the length if doubled.
+  if h is set, the note is made into a
+  dotted note.
+
+note info:
+  pitches are specified in a scale
+  relative to some base note.
+
+ bit | if 0     | if 1
+-----+----------+-----------
+  general
+   a | -        | -
+   b | silent
+   c | silent
+   d | -        | -
+
+  time info
+   e | -        | double
+   f | -        | -
+   g | -        | -
+   h | -        | dotted
+
+  pitch info
+   i | major    | minor
+   j | 
+   k | pitch offset from base
+   l |           
