@@ -1,0 +1,65 @@
+4 BIT WAVETABLE INSTRUCTION SET, TAKE 2
+---------------------------------------
+
+The WTVM has a wavetable that is highly
+cyclical in nature. It is a 2D table,
+which means it acts as a function from
+an X, Y coordinate pair to a value R.
+
+X and Y work modulo 1, which means that
+X + 1 ~ X, and Y + 1 ~ Y.
+
+The WTVM consists of 16 instructions,
+each of which modify the state of the
+wavetable in some way.
+
+The WTVM has N cursors, each of which
+point to a specific X, Y coordinate in
+the wavetable. An instruction may
+either modify these cursors, the data
+they point to, or N - the number of
+cursors.
+
+Unless otherwise specified, 'data'
+refers to the entries pointed to by
+all cursors, and 'neighborhood' refers
+to the data values surrounding the ones
+pointed to by all cursors.
+
+0000  0  no-op
+0001  1  multiply the x coordinate of
+         the cursor by the prime of the
+         following nibble, and the y
+         coordinate of the cursor by
+         the prime of 16 - the
+         following nibble
+0010  2  introduce a cursor at the
+         smallest x, y pair furthest
+         away from all the other
+         cursors
+0011  3  multiply the data by the
+         prime of the following nibble,
+         wrapping on overflow
+0100  4  slant the neighborhood
+0101  5  smooth the neighborhood
+0110  6  substitute the data by the
+         Rijndael S-Box
+0111  7  interpret the data as a pair
+         of the top 4-bits of an 8-bit
+         two's complement signed
+         integer, and modify the X, Y
+         coordinates of the cursor by
+         that, wrapping on overflow.
+1000  8  move each cursor diagonally by
+         its position, starting with
+         the cursor at the index
+         specified by the prime of the
+         following nibble
+1001  9  transpose the wavetable
+1010  a  remove the oldest cursor,
+         unless there is only one
+1011  b  [unused]
+1100  c  [unused]
+1101  d  [unused]
+1110  e  [unused]
+1111  f  [unused]
