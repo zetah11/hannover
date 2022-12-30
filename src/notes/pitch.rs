@@ -29,6 +29,10 @@ impl Pitch {
         A4 * (TWELFTH_ROOT_TWO.powi(self.0))
     }
 
+    pub fn in_pentatonic_minor(&self, n: i32) -> Pitch {
+        self.in_scale(n, &[3, 2, 2, 3, 2])
+    }
+
     pub fn in_major(&self, n: i32) -> Pitch {
         self.in_scale(n, &[2, 2, 1, 2, 2, 2, 1])
     }

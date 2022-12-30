@@ -9,9 +9,8 @@ nibbles, of the form
 
   abcd efgh ijkl
 
-general:
-  note is silent if both b and c are
-  unset.
+silent
+  note is silent if all bits are unset.
 
 time info:
   each note begins as a sixteenth note.
@@ -19,26 +18,28 @@ time info:
   if h is set, the note is made into a
   dotted note.
 
-note info:
+pitch offset from base:
   pitches are specified in a scale
   relative to some base note.
+  these bits are 4-bit signed relative
+  to that base.
 
  bit | if 0     | if 1
 -----+----------+-----------
-  general
-   a | -        | -
-   b | silent
-   c | silent
-   d | -        | -
+  silent
+   a | 
+   b | 
+   c | 
+   d | 
 
   time info
-   e | -        | double
-   f | -        | -
+   e | -        | triple
+   f | -        | double
    g | -        | -
    h | -        | dotted
 
-  pitch info
-   i | major    | minor
+  pitch offset from base
+   i | 
    j | 
-   k | pitch offset from base
+   k | 
    l |           

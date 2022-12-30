@@ -8,7 +8,7 @@ use crate::notes::duration::Duration;
 use crate::sampler::Sampler;
 use crate::wavetable::Wavetable;
 
-pub const BPM: usize = 120;
+pub const BPM: usize = 100;
 
 pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, input: &[u8]) {
     let samples_per_duration = samples_per_duration(sample_rate, BPM);
@@ -62,6 +62,7 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, input: &[u8]) 
             note = note_nibbles.next_note();
             println!("{note:?}");
             env.reset();
+            env.set_decay(0.5 * note.duration.as_time(BPM));
         }
     }
 }

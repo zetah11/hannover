@@ -25,6 +25,10 @@ impl AttackDecay {
         self.value = 0.0;
     }
 
+    pub fn set_decay(&mut self, decay: f64) {
+        self.decay_cumulative = self.attack + decay;
+    }
+
     pub fn step(&mut self, by: f64) {
         self.value += by;
     }
