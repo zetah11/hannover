@@ -2,7 +2,7 @@
 
 use anyhow::anyhow;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{BufferSize, Data, OutputCallbackInfo, Sample, SampleFormat, Stream, StreamConfig};
+use cpal::{BufferSize, OutputCallbackInfo, SampleFormat, Stream, StreamConfig};
 use log::warn;
 use rtrb::{Consumer, Producer, RingBuffer};
 
@@ -52,7 +52,7 @@ pub fn play_audio() -> anyhow::Result<AudioIo> {
 fn make_data_callback(
     mut audio_out: Consumer<f32>,
 ) -> impl FnMut(&mut [f32], &OutputCallbackInfo) + Send + 'static {
-    move |buffer, info| {
+    move |buffer, _info| {
         for buf in buffer.iter_mut() {
             *buf = audio_out.pop().unwrap_or_else(|_| {
                 warn!("ring buffer empty");

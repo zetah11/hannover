@@ -25,12 +25,6 @@ impl<T> FixedQueue<T> {
     }
 }
 
-impl<T: Clone> FixedQueue<T> {
-    pub fn fill(item: T, capacity: usize) -> Self {
-        Self::new_with(|| item.clone(), capacity)
-    }
-}
-
 impl<T: Default> FixedQueue<T> {
     pub fn new(capacity: usize) -> Self {
         Self::new_with(T::default, capacity)

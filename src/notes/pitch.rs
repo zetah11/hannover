@@ -13,19 +13,6 @@ pub struct Pitch(i32);
 impl Pitch {
     pub const A2: Pitch = Pitch(-24);
 
-    pub const C4: Pitch = Pitch(-9);
-    pub const CS4: Pitch = Pitch(-8);
-    pub const D4: Pitch = Pitch(-7);
-    pub const DS4: Pitch = Pitch(-8);
-    pub const E4: Pitch = Pitch(-5);
-    pub const F4: Pitch = Pitch(-4);
-    pub const FS4: Pitch = Pitch(-3);
-    pub const G4: Pitch = Pitch(-2);
-    pub const GS4: Pitch = Pitch(-1);
-    pub const A4: Pitch = Pitch(0);
-    pub const AS4: Pitch = Pitch(1);
-    pub const B4: Pitch = Pitch(2);
-
     /// Get the frequency, in Hz, of this pitch.
     pub fn as_frequency(&self) -> f64 {
         A4 * (TWELFTH_ROOT_TWO.powi(self.0))
@@ -33,14 +20,6 @@ impl Pitch {
 
     pub fn in_pentatonic_minor(&self, n: i32) -> Pitch {
         self.in_scale(n, &[3, 2, 2, 3, 2])
-    }
-
-    pub fn in_major(&self, n: i32) -> Pitch {
-        self.in_scale(n, &[2, 2, 1, 2, 2, 2, 1])
-    }
-
-    pub fn in_minor(&self, n: i32) -> Pitch {
-        self.in_scale(n, &[2, 1, 2, 2, 1, 2, 2])
     }
 
     /// Get the pitch that is the `n`th note in the given scale with this note

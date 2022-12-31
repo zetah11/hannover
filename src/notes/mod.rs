@@ -6,8 +6,6 @@ use crate::bytes::NibbleStream;
 use duration::Duration;
 use pitch::Pitch;
 
-use self::pitch::Octave;
-
 #[derive(Clone, Copy, Debug)]
 pub struct Note {
     pub pitch: Option<Pitch>,

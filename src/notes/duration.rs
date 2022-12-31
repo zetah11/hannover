@@ -1,7 +1,5 @@
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 
-use crate::math::MathExt;
-
 /// A note duration. Implemented as a multiple of thirty-second notes.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Duration(usize);
