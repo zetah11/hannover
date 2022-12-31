@@ -26,7 +26,7 @@ impl<const N: usize> NibbleStream<N> {
         Self {
             data: data.to_vec(),
             total: 0,
-            index: self.index % wrap,
+            index: if wrap == 0 { 0 } else { self.index % wrap },
             wrap,
             _phantom: std::marker::PhantomData,
         }

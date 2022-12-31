@@ -1,3 +1,7 @@
+mod poll;
+
+pub use poll::InputPoller;
+
 use std::io::{stdout, Stdout, Write};
 
 use anyhow::anyhow;
@@ -6,27 +10,30 @@ use crossterm::style::{self, Color};
 use crossterm::terminal;
 use crossterm::ExecutableCommand;
 use crossterm::{cursor, QueueableCommand};
+use single_value_channel::Updater;
 
 pub struct Gui {
     text: String,
     cursor: usize,
     max_cursor: usize,
+    send: Updater<String>,
 }
 
 impl Gui {
-    pub fn run() -> anyhow::Result<String> {
+    pub fn run(send: Updater<String>) -> anyhow::Result<String> {
         terminal::enable_raw_mode()?;
-        let result = Self::event_loop();
+        let result = Self::event_loop(send);
         terminal::disable_raw_mode()?;
 
         result
     }
 
-    fn event_loop() -> anyhow::Result<String> {
+    fn event_loop(send: Updater<String>) -> anyhow::Result<String> {
         let mut this = Self {
             text: String::new(),
             cursor: 0,
             max_cursor: 0,
+            send,
         };
 
         let mut stdout = stdout();
@@ -59,6 +66,8 @@ impl Gui {
             stdout
                 .queue(cursor::MoveToColumn(2 + this.cursor as u16))?
                 .flush()?;
+
+            this.send.update(this.text.clone())?;
         }
 
         stdout.flush()?;

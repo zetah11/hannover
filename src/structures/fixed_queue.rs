@@ -23,6 +23,12 @@ impl<T> FixedQueue<T> {
     pub fn get(&self) -> &T {
         self.data.get(self.at).unwrap()
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.data[self.at..]
+            .iter()
+            .chain(self.data[..self.at].iter())
+    }
 }
 
 impl<T: Default> FixedQueue<T> {

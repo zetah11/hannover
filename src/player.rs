@@ -5,13 +5,14 @@ use crate::bytes::NibbleStream;
 use crate::delay::Delay;
 use crate::envelope::AttackDecay;
 use crate::float::Float;
+use crate::gui::InputPoller;
 use crate::notes::duration::Duration;
 use crate::sampler::Sampler;
 use crate::wavetable::Wavetable;
 
 pub const BPM: usize = 100;
 
-pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, input: &[u8]) {
+pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, mut input: InputPoller) {
     let samples_per_duration = samples_per_duration(sample_rate, BPM);
     let seconds_per_sample = 1.0 / sample_rate as f64;
 
@@ -19,13 +20,15 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, input: &[u8]) 
 
     let mut delay1 = Delay::new(5_000, 0.9, 1.0, 0.1);
     let mut delay2 = Delay::new(20_000, 0.8, 0.9, 0.7);
+
     let mut env = AttackDecay::new(0.02, 0.04);
     let mut wt = Wavetable::<22>::new_sine();
     let mut y = Float::new();
 
-    let mut y_nibbles = NibbleStream::<5>::new(input);
-    let mut note_nibbles = NibbleStream::<3>::new(input);
-    let mut wt_nibbles = NibbleStream::<1>::new(input);
+    let data = input.poll().unwrap_or("").as_bytes();
+    let mut y_nibbles = NibbleStream::<5>::new(data);
+    let mut note_nibbles = NibbleStream::<3>::new(data);
+    let mut wt_nibbles = NibbleStream::<1>::new(data);
 
     let mut note = note_nibbles.next_note();
 
@@ -71,6 +74,13 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, input: &[u8]) 
         } else {
             note = note_nibbles.next_note();
             env.reset();
+        }
+
+        if let Some(data) = input.poll() {
+            let data = data.as_bytes();
+            note_nibbles = note_nibbles.with_new_data(data);
+            y_nibbles = y_nibbles.with_new_data(data);
+            wt_nibbles = wt_nibbles.with_new_data(data);
         }
     }
 }
