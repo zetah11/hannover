@@ -1,4 +1,5 @@
 use rtrb::Producer;
+use single_value_channel::Updater;
 
 use crate::aio::BUFFER_SIZE;
 use crate::bytes::NibbleStream;
@@ -12,7 +13,12 @@ use crate::wavetable::Wavetable;
 
 pub const BPM: usize = 100;
 
-pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, mut input: InputPoller) {
+pub fn play(
+    mut audio_channel: Producer<f32>,
+    sample_rate: usize,
+    mut input: InputPoller,
+    wt_send: Updater<Vec<u8>>,
+) {
     let samples_per_duration = samples_per_duration(sample_rate, BPM);
     let seconds_per_sample = 1.0 / sample_rate as f64;
 
@@ -24,6 +30,8 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, mut input: Inp
     let mut env = AttackDecay::new(0.02, 0.04);
     let mut wt = Wavetable::<50>::new_sine();
     let mut y = Float::new();
+
+    wt_send.update(wt.slice(y.sample()).to_vec()).unwrap();
 
     let data = input.poll().unwrap_or("").as_bytes();
     let mut y_nibbles = NibbleStream::<5>::new(data);
@@ -68,6 +76,7 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, mut input: Inp
 
         y.add(y_nibbles.next_coarse_float());
         wt.execute(wt_nibbles.next_instruction());
+        wt.increment();
 
         if let Some(duration) = note.duration.decrement() {
             note.duration = duration;
@@ -82,6 +91,8 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, mut input: Inp
             y_nibbles = y_nibbles.with_new_data(data);
             wt_nibbles = wt_nibbles.with_new_data(data);
         }
+
+        wt_send.update(wt.slice(y.sample()).to_vec()).unwrap();
     }
 }
 

@@ -22,13 +22,16 @@ fn main() {
     pretty_env_logger::init();
 
     let (recv, send) = channel_starting_with(String::new());
+    let (wt_recv, wt_send) = channel_starting_with(vec![]);
 
-    let input_thread = thread::spawn(|| gui::Gui::run(send));
+    let poll = gui::InputPoller::new(recv);
+    let wt_poll = gui::WavetablePoller::new(wt_recv);
 
-    let player_thread = thread::spawn(|| {
-        let poll = gui::InputPoller::new(recv);
+    let input_thread = thread::spawn(|| gui::Gui::run(send, wt_poll));
+
+    let _player_thread = thread::spawn(|| {
         let aio = aio::play_audio().unwrap();
-        player::play(aio.audio_in, aio.sample_rate, poll);
+        player::play(aio.audio_in, aio.sample_rate, poll, wt_send);
     });
 
     match input_thread.join() {

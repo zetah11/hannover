@@ -38,6 +38,13 @@ impl<const S: usize> Wavetable<S> {
         }
     }
 
+    /// Get the wavetable slice at the given `y` coordinate. `y` is in the range
+    /// `[0, 1)`.
+    pub fn slice(&self, y: f64) -> &[u8; S] {
+        let y = (y * Self::SIZE) as usize;
+        &self.data[y]
+    }
+
     /// Sample the wavetable at the given `x` `y` coordinates. `x` and `y` are
     /// in the range `[0, 1)`, and the resulting value is a bilinear
     /// interpolation at this point and lies in the range `[0, 1]`.
