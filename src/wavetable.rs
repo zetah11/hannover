@@ -40,9 +40,24 @@ impl<const S: usize> Wavetable<S> {
 
     /// Get the wavetable slice at the given `y` coordinate. `y` is in the range
     /// `[0, 1)`.
-    pub fn slice(&self, y: f64) -> &[u8; S] {
-        let y = (y * Self::SIZE) as usize;
-        &self.data[y]
+    pub fn slice(&self, y: f64) -> Vec<u8> {
+        let y1_index = (y * Self::SIZE) as usize;
+        let y2_index = (y1_index + 1) % S;
+
+        let y1 = y1_index as f64 / Self::SIZE;
+        let y2 = (y1_index + 1) as f64 / Self::SIZE;
+        let t = (y - y1) / (y2 - y1);
+
+        let mut res = Vec::with_capacity(S);
+
+        for x in 0..S {
+            let a = self.data[y1_index][x] as f64 / 255.0;
+            let b = self.data[y2_index][x] as f64 / 255.0;
+            let value = (1.0 - t) * a + t * b;
+            res.push((value * 255.0) as u8);
+        }
+
+        res
     }
 
     /// Sample the wavetable at the given `x` `y` coordinates. `x` and `y` are

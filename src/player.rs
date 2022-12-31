@@ -74,7 +74,7 @@ pub fn play(
             }));
         }
 
-        y.add(y_nibbles.next_coarse_float());
+        y.add(0.01 * y_nibbles.next_coarse_float());
         wt.execute(wt_nibbles.next_instruction());
         wt.increment();
 
@@ -92,7 +92,7 @@ pub fn play(
             wt_nibbles = wt_nibbles.with_new_data(data);
         }
 
-        wt_send.update(wt.slice(y.sample()).to_vec()).unwrap();
+        wt_send.update(wt.slice(y.sample())).unwrap();
     }
 }
 

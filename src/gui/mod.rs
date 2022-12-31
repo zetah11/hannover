@@ -14,8 +14,8 @@ use crossterm::{cursor, QueueableCommand};
 use itertools::Itertools;
 use single_value_channel::Updater;
 
-pub const WT_VIZ_WIDTH: usize = 36;
-pub const WT_VIZ_HEIGHT: usize = 6;
+pub const WT_VIZ_WIDTH: usize = 48;
+pub const WT_VIZ_HEIGHT: usize = 8;
 pub const WT_LETTERS: [char; 16] = [
     ' ', '.', '.', '_', '\'', '|', '/', 'j', '\'', '\\', '|', 'L', '^', '\\', '/', '#',
 ];
@@ -129,7 +129,6 @@ impl Gui {
                 }
 
                 KeyCode::Enter => {
-                    stdout.execute(cursor::MoveToNextLine(1))?;
                     return Ok(true);
                 }
 
