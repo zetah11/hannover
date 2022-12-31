@@ -21,17 +21,19 @@ use single_value_channel::channel_starting_with;
 fn main() {
     pretty_env_logger::init();
 
-    thread::scope(|s| {
-        let (recv, send) = channel_starting_with(String::new());
+    let (recv, send) = channel_starting_with(String::new());
 
-        s.spawn(|| {
-            gui::Gui::run(send).unwrap();
-        });
+    let input_thread = thread::spawn(|| gui::Gui::run(send));
 
+    let player_thread = thread::spawn(|| {
         let poll = gui::InputPoller::new(recv);
-
         let aio = aio::play_audio().unwrap();
-
         player::play(aio.audio_in, aio.sample_rate, poll);
-    })
+    });
+
+    match input_thread.join() {
+        Ok(Ok(()) | Err(gui::GuiError::Interrupted)) => {}
+        Ok(Err(e)) => Err(e).unwrap(),
+        Err(e) => Err(e).unwrap(),
+    }
 }

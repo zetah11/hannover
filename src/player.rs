@@ -22,7 +22,7 @@ pub fn play(mut audio_channel: Producer<f32>, sample_rate: usize, mut input: Inp
     let mut delay2 = Delay::new(20_000, 0.8, 0.9, 0.7);
 
     let mut env = AttackDecay::new(0.02, 0.04);
-    let mut wt = Wavetable::<22>::new_sine();
+    let mut wt = Wavetable::<50>::new_sine();
     let mut y = Float::new();
 
     let data = input.poll().unwrap_or("").as_bytes();

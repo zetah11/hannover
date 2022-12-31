@@ -12,6 +12,30 @@ use crossterm::ExecutableCommand;
 use crossterm::{cursor, QueueableCommand};
 use single_value_channel::Updater;
 
+#[derive(Debug)]
+pub enum GuiError {
+    /// The program was interrupted with Ctrl-C.
+    Interrupted,
+    Crossterm(crossterm::ErrorKind),
+}
+
+impl From<crossterm::ErrorKind> for GuiError {
+    fn from(value: crossterm::ErrorKind) -> Self {
+        Self::Crossterm(value)
+    }
+}
+
+impl std::fmt::Display for GuiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Interrupted => write!(f, "interrupted by user"),
+            Self::Crossterm(e) => e.fmt(f),
+        }
+    }
+}
+
+impl std::error::Error for GuiError {}
+
 pub struct Gui {
     text: String,
     cursor: usize,
@@ -20,7 +44,7 @@ pub struct Gui {
 }
 
 impl Gui {
-    pub fn run(send: Updater<String>) -> anyhow::Result<String> {
+    pub fn run(send: Updater<String>) -> Result<(), GuiError> {
         terminal::enable_raw_mode()?;
         let result = Self::event_loop(send);
         terminal::disable_raw_mode()?;
@@ -28,7 +52,7 @@ impl Gui {
         result
     }
 
-    fn event_loop(send: Updater<String>) -> anyhow::Result<String> {
+    fn event_loop(send: Updater<String>) -> Result<(), GuiError> {
         let mut this = Self {
             text: String::new(),
             cursor: 0,
@@ -67,14 +91,16 @@ impl Gui {
                 .queue(cursor::MoveToColumn(2 + this.cursor as u16))?
                 .flush()?;
 
-            this.send.update(this.text.clone())?;
+            if this.send.update(this.text.clone()).is_err() {
+                break;
+            }
         }
 
         stdout.flush()?;
-        Ok(this.text)
+        Ok(())
     }
 
-    fn handle_event(&mut self, stdout: &mut Stdout) -> anyhow::Result<bool> {
+    fn handle_event(&mut self, stdout: &mut Stdout) -> Result<bool, GuiError> {
         match event::read()? {
             Event::Key(KeyEvent {
                 code, modifiers, ..
@@ -134,7 +160,7 @@ impl Gui {
                     let c: String = if modifiers.contains(KeyModifiers::SHIFT) {
                         c.to_uppercase().collect()
                     } else if modifiers.contains(KeyModifiers::CONTROL) && c == 'c' {
-                        return Err(anyhow!("Interrupted"));
+                        return Err(GuiError::Interrupted);
                     } else {
                         String::from(c)
                     };
