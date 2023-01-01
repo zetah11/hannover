@@ -7,8 +7,9 @@ use crate::delay::Delay;
 use crate::envelope::AttackDecay;
 use crate::float::Float;
 use crate::gui::InputPoller;
-use crate::notes::Duration;
+use crate::notes::{Duration, Octave, Pitch};
 use crate::sampler::Sampler;
+use crate::sequence::Sequence;
 use crate::voice::VoiceGroup;
 use crate::wavetable::Wavetable;
 
@@ -20,6 +21,8 @@ pub fn play(
     mut input: InputPoller,
     wt_send: Updater<Vec<u8>>,
 ) {
+    const BASE: Pitch = Pitch::A2;
+
     let samples_per_duration = samples_per_duration(sample_rate, BPM);
     let seconds_per_sample = 1.0 / sample_rate as f64;
 
@@ -40,20 +43,25 @@ pub fn play(
     let mut wt_nibbles = NibbleStream::<1>::new(data);
 
     let mut voices = VoiceGroup::new(8, AttackDecay::new(0.05, 0.4));
-    let note = note_nibbles.next_note();
+    let note = note_nibbles.next_note(BASE);
     let mut duration = note.duration;
     voices.add(note);
+
+    let mut arp_seq = None;
+    let mut arp_voices = VoiceGroup::new(8, AttackDecay::new(0.01, 0.05));
+    let mut arp_duration = Duration::DELTA;
 
     let mut buffer = [0.0; BUFFER_SIZE];
 
     let mut sample_no = 0;
+    let mut note_count: usize = 0;
     loop {
         for _ in 0..samples_per_duration / BUFFER_SIZE {
             buffer.fill(0.0);
 
             let wt_y = y.sample();
 
-            for voice in voices.iter_mut() {
+            for voice in voices.iter_mut().chain(arp_voices.iter_mut()) {
                 if let Some(pitch) = voice.pitch() {
                     let frequency = pitch.as_frequency();
 
@@ -86,16 +94,33 @@ pub fn play(
         wt.execute(wt_nibbles.next_instruction());
         wt.increment();
 
-        for voice in voices.iter_mut() {
+        for voice in voices.iter_mut().chain(arp_voices.iter_mut()) {
             voice.delta_step();
         }
 
         if let Some(new) = duration.decrement() {
             duration = new;
         } else {
-            let note = note_nibbles.next_note();
+            let note = note_nibbles.next_note(BASE);
             duration = note.duration;
             voices.add(note);
+
+            if note_count % 5 == 0 {
+                if let Some(pitch) = note.pitch {
+                    arp_seq = Sequence::new_arp(BASE + Octave, pitch, 2 * Duration::EIGHT);
+                }
+            }
+        }
+
+        note_count += 1;
+        if let Some(seq) = &mut arp_seq {
+            if let Some(duration) = arp_duration.decrement() {
+                arp_duration = duration;
+            } else {
+                let note = seq.next_note();
+                arp_voices.add(note);
+                arp_duration = note.duration;
+            }
         }
 
         if let Some(data) = input.poll() {

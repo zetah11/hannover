@@ -9,6 +9,7 @@ mod math;
 mod notes;
 mod player;
 mod sampler;
+mod sequence;
 mod structures;
 mod voice;
 mod wavetable;

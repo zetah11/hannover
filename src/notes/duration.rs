@@ -5,6 +5,7 @@ use std::ops::{Add, AddAssign, Mul, MulAssign};
 pub struct Duration(usize);
 
 impl Duration {
+    pub const EIGHT: Duration = Duration(4);
     pub const SIXTEENTH: Duration = Duration(2);
 
     /// The smallest non-zero duration represented by this.
