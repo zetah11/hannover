@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 mod aio;
 mod bytes;
 mod data;
@@ -12,6 +10,7 @@ mod notes;
 mod player;
 mod sampler;
 mod structures;
+mod voice;
 mod wavetable;
 
 use std::thread;

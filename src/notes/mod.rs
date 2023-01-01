@@ -1,15 +1,22 @@
-pub mod duration;
-pub mod pitch;
+mod duration;
+mod pitch;
+
+pub use self::duration::Duration;
+pub use self::pitch::Pitch;
 
 use crate::bytes::NibbleStream;
-
-use duration::Duration;
-use pitch::Pitch;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Note {
     pub pitch: Option<Pitch>,
     pub duration: Duration,
+}
+
+impl Note {
+    pub const SMALL_SILENT: Self = Self {
+        pitch: None,
+        duration: Duration::DELTA,
+    };
 }
 
 impl NibbleStream<3> {

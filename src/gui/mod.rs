@@ -82,7 +82,7 @@ impl Gui {
             .execute(style::ResetColor)?;
 
         loop {
-            match this.handle_event(&mut stdout) {
+            match this.handle_event() {
                 Ok(true) => break,
                 Ok(false) => {}
                 Err(GuiError::Interrupted) => {
@@ -107,7 +107,7 @@ impl Gui {
         Ok(())
     }
 
-    fn handle_event(&mut self, stdout: &mut Stdout) -> Result<bool, GuiError> {
+    fn handle_event(&mut self) -> Result<bool, GuiError> {
         if !event::poll(Duration::from_millis(1000 / 15))? {
             return Ok(false);
         }
@@ -199,6 +199,9 @@ impl Gui {
     }
 
     fn unrender(&self, stdout: &mut Stdout) -> Result<(), GuiError> {
+        let clear: String = (0..self.max_cursor).map(|_| ' ').collect();
+        stdout.queue(style::Print(clear))?;
+
         let clear: String = (0..WT_VIZ_WIDTH).map(|_| ' ').collect();
         for _ in 0..WT_VIZ_HEIGHT {
             stdout

@@ -1,4 +1,4 @@
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct AttackDecay {
     /// Number of seconds for the attack.
     attack: f64,
@@ -25,12 +25,12 @@ impl AttackDecay {
         self.value = 0.0;
     }
 
-    pub fn set_decay(&mut self, decay: f64) {
-        self.decay_cumulative = self.attack + decay;
-    }
-
     pub fn step(&mut self, by: f64) {
         self.value += by;
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.value >= self.decay_cumulative
     }
 
     pub fn value(&self) -> f64 {
@@ -39,6 +39,7 @@ impl AttackDecay {
             attack,
             decay_cumulative,
         } = self;
+
         if value >= decay_cumulative {
             0.0
         } else if value > attack {

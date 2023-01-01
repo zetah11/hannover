@@ -24,6 +24,7 @@ impl<T> FixedQueue<T> {
         self.data.get(self.at).unwrap()
     }
 
+    #[allow(unused)]
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.data[self.at..]
             .iter()
