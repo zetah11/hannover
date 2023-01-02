@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 use crate::notes::{Duration, Note, Pitch};
 
 // 0 2  3 5 7  8 10
@@ -14,21 +12,44 @@ use crate::notes::{Duration, Note, Pitch};
 const PENTATONIC_MINOR_CHORDS: [[i32; 3]; 5] =
     [[0, 3, 7], [3, 7, 10], [0, 5, 8], [2, 7, 10], [2, 5, 10]];
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum Direction {
+    Up,
+    Down,
+    PingPong,
+}
+
+impl Direction {
+    fn with_step(self) -> (Self, isize) {
+        let step = match self {
+            Direction::Up => 1,
+            Direction::Down => -1,
+            Direction::PingPong => 1,
+        };
+
+        (self, step)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Sequence {
     notes: Vec<Note>,
     at: usize,
+    dir: (Direction, isize),
 }
 
 impl Sequence {
-    pub fn new(notes: Vec<Note>) -> Self {
-        assert!(!notes.is_empty());
-        Self { notes, at: 0 }
+    pub fn new(notes: Vec<Note>, dir: Direction) -> Self {
+        Self {
+            notes,
+            at: 0,
+            dir: dir.with_step(),
+        }
     }
 
     /// Generate an arpeggiating sequence, given a `note` in the pentatonic
     /// minor scale starting at `base`.
-    pub fn new_arp(base: Pitch, note: Pitch, duration: Duration) -> Option<Self> {
+    pub fn new_arp(base: Pitch, note: Pitch, dir: Direction, duration: Duration) -> Option<Self> {
         let degree = base.pentatonic_minor_scale_number(note)?;
         let chord = PENTATONIC_MINOR_CHORDS.get(degree).unwrap();
 
@@ -41,13 +62,32 @@ impl Sequence {
                 })
                 .collect(),
             at: 0,
+            dir: dir.with_step(),
         })
     }
 
-    pub fn next_note(&mut self) -> Note {
-        let current = self.notes.get(self.at).unwrap();
-        self.at = self.at.wrapping_add(1) % self.notes.len();
-        *current
+    pub fn next_note(&mut self) -> Option<Note> {
+        let current = self.notes.get(self.at)?;
+        let at = self.at as isize;
+        let len = self.notes.len() as isize;
+        self.at = match self.dir {
+            (Direction::Up | Direction::Down, step) => {
+                at.wrapping_add(step).rem_euclid(len) as usize
+            }
+
+            (Direction::PingPong, step) => {
+                let step = if at + step == len || at + step == -1 {
+                    -step
+                } else {
+                    step
+                };
+
+                self.dir.1 = step;
+                at.wrapping_add(step).rem_euclid(len) as usize
+            }
+        };
+
+        Some(*current)
     }
 }
 
@@ -55,6 +95,6 @@ impl Iterator for Sequence {
     type Item = Note;
 
     fn next(&mut self) -> Option<Self::Item> {
-        Some(self.next_note())
+        self.next_note()
     }
 }
