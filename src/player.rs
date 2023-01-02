@@ -2,16 +2,12 @@ use rtrb::Producer;
 use single_value_channel::Updater;
 
 use crate::aio::BUFFER_SIZE;
-use crate::bytes::NibbleStream;
 use crate::delay::Delay;
 use crate::envelope::AttackDecay;
-use crate::float::Float;
 use crate::gui::InputPoller;
-use crate::notes::{Duration, Pitch};
+use crate::notes::Duration;
+use crate::performer::Performer;
 use crate::sampler::Sampler;
-use crate::source::NoteSource;
-use crate::voice::VoiceGroup;
-use crate::wavetable::Wavetable;
 
 pub const BPM: usize = 100;
 
@@ -21,55 +17,26 @@ pub fn play(
     mut input: InputPoller,
     wt_send: Updater<Vec<u8>>,
 ) {
-    const BASE: Pitch = Pitch::A2;
-
     let samples_per_duration = samples_per_duration(sample_rate, BPM);
-    let seconds_per_sample = 1.0 / sample_rate as f64;
 
-    let sampler = Sampler::new(sample_rate);
+    let mut sampler = Sampler::new(sample_rate);
 
-    let mut delay1 = Delay::new(2_000, 0.9, 0.7, 0.3);
-    let mut delay2 = Delay::new(15_000, 0.8, 0.8, 0.2);
-    let mut delay3 = Delay::new(40_000, 0.7, 0.9, 0.1);
-
-    let mut wt = Wavetable::<50>::new_sine();
-    let mut y = Float::new();
-
-    wt_send.update(wt.slice(y.sample()).to_vec()).unwrap();
+    let mut delay1 = Delay::new(2_000, 0.9, 0.8, 0.2);
+    let mut delay2 = Delay::new(15_000, 0.8, 0.7, 0.3);
+    let mut delay3 = Delay::new(40_000, 0.7, 0.6, 0.4);
 
     let data = input.poll().unwrap_or("").as_bytes();
-    let mut source = NoteSource::new(data);
-    let mut y_nibbles = NibbleStream::<5>::new(data);
-    let mut wt_nibbles = NibbleStream::<1>::new(data);
+    let mut performer = Performer::<50>::new(data, AttackDecay::new(0.05, 0.4));
 
-    let mut voices = VoiceGroup::new(8, AttackDecay::new(0.05, 0.4));
-    let note = source.next(BASE);
-    let mut duration = note.duration;
-    voices.add(note);
+    wt_send.update(performer.slice()).unwrap();
 
     let mut buffer = [0.0; BUFFER_SIZE];
 
-    let mut sample_no = 0;
     loop {
         for _ in 0..samples_per_duration / BUFFER_SIZE {
             buffer.fill(0.0);
-
-            let wt_y = y.sample();
-
-            for voice in voices.iter_mut() {
-                if let Some(pitch) = voice.pitch() {
-                    let frequency = pitch.as_frequency();
-
-                    for (i, buf) in buffer.iter_mut().enumerate() {
-                        let sample = sampler.sample(&wt, frequency, sample_no + i, wt_y);
-                        let gain = voice.env();
-                        voice.step(seconds_per_sample);
-                        *buf += sample * gain;
-                    }
-                }
-            }
-
-            sample_no += buffer.len();
+            performer.sample_in(&sampler, &mut buffer);
+            sampler.step(buffer.len());
 
             let chunk = loop {
                 if let Ok(chunk) = audio_channel.write_chunk_uninit(BUFFER_SIZE) {
@@ -85,30 +52,13 @@ pub fn play(
             }));
         }
 
-        y.add(0.01 * y_nibbles.next_coarse_float());
-        wt.execute(wt_nibbles.next_instruction());
-        wt.increment();
-
-        for voice in voices.iter_mut() {
-            voice.delta_step();
-        }
-
-        if let Some(new) = duration.decrement() {
-            duration = new;
-        } else {
-            let note = source.next(BASE);
-            duration = note.duration;
-            voices.add(note);
-        }
+        performer.update();
 
         if let Some(data) = input.poll() {
-            let data = data.as_bytes();
-            source.update_input(data);
-            y_nibbles = y_nibbles.with_new_data(data);
-            wt_nibbles = wt_nibbles.with_new_data(data);
+            performer.update_input(data.as_bytes());
         }
 
-        wt_send.update(wt.slice(y.sample())).unwrap();
+        wt_send.update(performer.slice()).unwrap();
     }
 }
 

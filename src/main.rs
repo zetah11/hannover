@@ -8,6 +8,7 @@ mod gui;
 mod markov;
 mod math;
 mod notes;
+mod performer;
 mod player;
 mod sampler;
 mod sequence;
