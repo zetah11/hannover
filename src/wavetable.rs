@@ -208,6 +208,12 @@ impl<const S: usize> Wavetable<S> {
                     self.cursors.pop_front();
                 }
             }
+            Instruction::Gaussian => {
+                debug!("gaussian blur");
+                for (x, y) in self.cursors.iter().copied() {
+                    gaussian(&mut self.data, x, y);
+                }
+            }
         }
     }
 }
@@ -239,12 +245,14 @@ pub enum Instruction {
     Transpose,
     /// Remove the oldest cursor
     RemoveOldest,
+    /// Apply a 3x3 gaussian blur.
+    Gaussian,
 }
 
 impl NibbleStream<1> {
     pub fn next_instruction(&mut self) -> Instruction {
         match self.next_nibble() {
-            0x0 | 0xb..=0xf => Instruction::Noop,
+            0x0 | 0xc..=0xf => Instruction::Noop,
 
             0x1 => {
                 let nibble = self.next_nibble();
@@ -262,6 +270,7 @@ impl NibbleStream<1> {
             0x8 => Instruction::MoveDiagonal(self.next_prime()),
             0x9 => Instruction::Transpose,
             0xa => Instruction::RemoveOldest,
+            0xb => Instruction::Gaussian,
 
             0x10..=u8::MAX => unreachable!("next_nibble returns a nibble"),
         }
@@ -348,4 +357,24 @@ fn smooth_one<const S: usize>(data: &mut [[u8; S]; S], x: usize, y: usize) {
     data[y][x] = (data[y][x] as i16)
         .saturating_add(diff)
         .rem_euclid(u8::MAX as i16) as u8;
+}
+
+fn gaussian<const S: usize>(data: &mut [[u8; S]; S], x: usize, y: usize) {
+    let x1 = if x == 0 { S - 1 } else { x - 1 };
+    let x2 = if x == S - 1 { 0 } else { x + 1 };
+
+    let y1 = if y == 0 { S - 1 } else { y - 1 };
+    let y2 = if y == S - 1 { 0 } else { y + 1 };
+
+    let value = 0.0625 * data[y1][x1] as f64
+        + 0.1250 * data[y1][x] as f64
+        + 0.0625 * data[y1][x2] as f64
+        + 0.1250 * data[y][x1] as f64
+        + 0.2500 * data[y][x] as f64
+        + 0.1250 * data[y][x2] as f64
+        + 0.0625 * data[y2][x1] as f64
+        + 0.1250 * data[y2][x] as f64
+        + 0.0625 * data[y2][x2] as f64;
+
+    data[y][x] = value as u8;
 }

@@ -58,7 +58,7 @@ pointed to by all cursors.
 1001  9  transpose the wavetable
 1010  a  remove the oldest cursor,
          unless there is only one
-1011  b  [unused]
+1011  b  3x3 gaussian blur
 1100  c  [unused]
 1101  d  [unused]
 1110  e  [unused]
