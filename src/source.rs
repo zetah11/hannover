@@ -1,5 +1,6 @@
 use crate::bytes::NibbleStream;
 use crate::markov::MarkovMelody;
+use crate::melody::Melody;
 use crate::notes::{Duration, Note, Pitch};
 use crate::sequence::{Direction, Sequence};
 
@@ -11,6 +12,7 @@ pub struct NoteSource {
 
     arp: Sequence,
     chain: MarkovMelody,
+    melody: Melody,
     prev: Option<Note>,
 
     count: usize,
@@ -26,6 +28,7 @@ impl NoteSource {
 
             arp: Sequence::new(vec![], Direction::Up),
             chain: MarkovMelody::new(),
+            melody: Melody::new(input),
             prev: None,
 
             count: 0,
@@ -35,11 +38,18 @@ impl NoteSource {
 
     pub fn next(&mut self, base: Pitch) -> Note {
         let (next, added_to_chain) = match (self.prev, self.state) {
-            (Some(_), 0 | 3 | 5 | 0xa | 0xc | 0xf) | (None, _) => {
+            (Some(_), 0 | 3 | 7 | 0xa | 0xe) | (None, _) => {
                 (self.note_nibbles.next_note(base), false)
             }
 
-            (Some(prev), 1 | 4 | 7 | 9 | 0xd) => {
+            (Some(_), 1 | 5 | 9 | 0xc) => match self.arp.next() {
+                Some(note) => (note, false),
+                None => (self.note_nibbles.next_note(base), false),
+            },
+
+            (Some(prev), 2 | 6 | 8 | 0xb | 0xf) => (self.melody.next(base, prev), false),
+
+            (Some(prev), 4 | 0xd) => {
                 let [a, b] = self.random_nibbles.next_nibbles();
                 let random = (a << 4) | b;
 
@@ -48,11 +58,6 @@ impl NoteSource {
                     None => (self.note_nibbles.next_note(base), true),
                 }
             }
-
-            (Some(_), 2 | 6 | 8 | 0xb | 0xe) => match self.arp.next() {
-                Some(note) => (note, false),
-                None => (self.note_nibbles.next_note(base), false),
-            },
 
             (_, 16..=u8::MAX) => unreachable!(),
         };
@@ -93,5 +98,6 @@ impl NoteSource {
         self.note_nibbles = self.note_nibbles.with_new_data(input);
         self.random_nibbles = self.random_nibbles.with_new_data(input);
         self.state_nibbles = self.state_nibbles.with_new_data(input);
+        self.melody.update_input(input);
     }
 }

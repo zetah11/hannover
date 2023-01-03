@@ -2,6 +2,7 @@ use std::ops::Add;
 use std::ops::Sub;
 
 pub const PENTATONIC_MINOR: [i32; 5] = [3, 2, 2, 3, 2];
+pub const MINOR: [i32; 7] = [2, 1, 2, 2, 1, 2, 2];
 
 /// The base frequency, in Hertz, of A4.
 const A4: f64 = 440.0;
@@ -20,8 +21,16 @@ impl Pitch {
         A4 * (TWELFTH_ROOT_TWO.powi(self.0))
     }
 
+    pub fn minor_scale_number(&self, pitch: Pitch) -> Option<usize> {
+        self.scale_number(pitch, &MINOR)
+    }
+
     pub fn pentatonic_minor_scale_number(&self, pitch: Pitch) -> Option<usize> {
         self.scale_number(pitch, &PENTATONIC_MINOR)
+    }
+
+    pub fn in_minor(&self, n: i32) -> Pitch {
+        self.in_scale(n, &MINOR)
     }
 
     pub fn in_pentatonic_minor(&self, n: i32) -> Pitch {

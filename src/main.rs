@@ -7,6 +7,7 @@ mod float;
 mod gui;
 mod markov;
 mod math;
+mod melody;
 mod notes;
 mod performer;
 mod player;

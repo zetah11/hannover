@@ -1,0 +1,24 @@
+STEPWISE MELODY MAKER
+---------------------------------------
+
+Melodies are constructed by starting at
+some note, and iteratively moving up or
+down by specific intervals.
+
+0mmm  adjust pitch by an interval of
+      mmm
+10dd  hold the current pitch for a
+      duration of dd
+11dd  invert the previous interval for
+      a duration of dd
+
+Intervals:
+
+000   1
+001   1
+010   2
+011   3
+100  -1
+101  -1
+110  -2
+111  -3
